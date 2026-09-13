@@ -1,0 +1,18 @@
+# dsh-turn-changes — 回合变更卡（host 组合层）
+#
+# 安装方式（在目标 DSH 实例上执行）：
+#   dsh plugin --profile web add <本包绝对路径>
+# 也可以直接跑仓库里的 install.mjs（复用 DSH Desktop 自带的 generation 安装管线）：
+#   node install.mjs
+#
+# 安装后该包会：
+#   1. 作为 host 插件行加载（本层）→ 订阅 tools/result 与 session/event 采集本回合的
+#      文件改动，注册 /turn-changes-api/* HTTP 路由供客户端半调用。
+#   2. 因 package.json 声明了 dsh.client → client-modules 扫描发现 → 客户端 bundle
+#      自动注入浏览器（无需重建 web，重启 DSH 后仍在）。
+#
+# 也可直接合并进 $DSH_HOME/cordis.patch.yml（对所有 profile 生效）。
+
+- insert:
+    - id: dsh-turn-changes
+      name: 'dsh-turn-changes'

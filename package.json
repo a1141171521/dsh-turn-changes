@@ -1,0 +1,43 @@
+{
+  "name": "dsh-turn-changes",
+  "version": "1.0.0",
+  "description": "回合变更卡：把每个回合里被改动的文件汇总成会话底部的「已改动」卡片，点卡片上的「审查」在右侧 details 栏里看行级 diff（统一/分栏两种视图、Cindy 同款红绿配色与词级高亮）",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "port": "node tools/port.mjs",
+    "verify": "node tools/verify-all.mjs"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "dsh",
+    "cordis",
+    "plugin",
+    "diff",
+    "code-review"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a1141171521/dsh-turn-changes.git"
+  },
+  "license": "MIT"
+}

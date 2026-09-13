@@ -1,0 +1,14 @@
+# 依赖与产物（本仓库是 link 安装，不需要 node_modules）
+node_modules/
+pnpm-lock.yaml
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# 本地验证用的临时快照
+*.tmp
+.scratch/
+before-*.md

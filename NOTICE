@@ -1,0 +1,26 @@
+dsh-turn-changes — 第三方署名
+
+本插件的 diff 视图（配色、分栏配对、词级高亮）在设计与算法上移植自 Cindy。
+按 Apache License 2.0 第 4 条的要求，在此记录来源与版权：
+
+  Cindy
+  https://github.com/makecindy/cindy
+  Copyright 2026 XD Inc.
+  Licensed under the Apache License, Version 2.0
+  （许可证全文见 https://www.apache.org/licenses/LICENSE-2.0 ）
+
+具体移植的部分（均为行为等价的重写，本仓库不含 Cindy 源代码）：
+
+1. 行级 diff 的配色与用法 —— 「整行挂底色 + 前景色，上下文行不上色」，
+   以及浅色/深色两套色值与 emphasis 色。
+   对应 Cindy: apps/desktop/src/renderer/.../DiffViewer/PlainUnifiedDiff.tsx、highlight.ts
+2. 分栏配对模型 —— 把一段连续的改动行收成 deletes[]/adds[]，再按下标配对
+   pair[i] = { deletes[i] ?? null, adds[i] ?? null }，行数取 max。
+   对应 Cindy: .../DiffViewer/diffRows.ts:284-297 pairChangedLines
+3. 词级高亮的四项门槛（单行字符上限、公共比例下限、配对总数上限、总字符上限）
+   与区间合并规则。
+   对应 Cindy: .../DiffViewer/inlineDiff.ts、highlight.ts
+4. 交互与结构 —— 每个回合在会话底部出一张变更卡、点开在右侧栏查看 diff。
+
+分词器按 jsdiff（diff@9.0.0）的 diffWordsWithSpace 行为重写；本仓库同样不包含
+jsdiff 的源代码，验证脚本会在本机 DSH 自带的 node_modules 里取该包做对拍。
