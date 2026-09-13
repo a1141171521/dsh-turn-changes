@@ -1,5 +1,8 @@
 dsh-turn-changes — 第三方署名
 
+本仓库自身的代码以 MIT 发布（见 LICENSE）。下面记录的 Cindy 部分仍适用其
+Apache-2.0 条款；本仓库不包含 Cindy 的源代码。
+
 本插件的 diff 视图（配色、分栏配对、词级高亮）在设计与算法上移植自 Cindy。
 按 Apache License 2.0 第 4 条的要求，在此记录来源与版权：
 

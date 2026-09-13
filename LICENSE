@@ -19,7 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
--------------------------------------------------------------------------------
-本仓库的 diff 视图在设计与算法上移植了 Cindy 的实现。Cindy 以 Apache-2.0
-发布，署名要求记录在同目录的 NOTICE 文件中。本仓库不包含 Cindy 的源代码。
