@@ -30,7 +30,9 @@ cordis_run({ pluginId: '<返回的 id>', packageId: '<返回的 packageId>', mod
 node tools/port.mjs
 ```
 
-`tools/port.mjs` 只做三类替换，且每个替换点都要求锚点唯一命中（对不上就报错退出）：
+`tools/port.mjs` 只做三类替换，且每个替换点都要求锚点唯一命中（对不上就报错退出，不写任何文件）。
+它**与行尾无关**：比较前两边都归一成 LF，所以 LF / CRLF 检出的仓库都能生成同样的 `lib/`；
+回归测试见 `verify/verify-port-crlf.mjs`（把源码复制成 CRLF 再跑一遍，逐字节比对）。
 
 1. **外壳**：动态的插件体 → 静态插件（host: `export default {name, apply}`；client: `window.__ModuleLoader__.load({id, factory})`）。
 2. **通道**：`harness.handle(method, fn)` → `route(method, fn)` + 一条 `webServer` 前缀路由；

@@ -14,15 +14,44 @@ import { readFileSync, writeFileSync } from 'node:fs'
 const ok = []
 const bad = []
 
+/**
+ * 行尾统一成 LF。
+ *
+ * 为什么必须做：JS 规范规定模板字面量源码里的 `<CR><LF>` 在解析时被规范化成 `<LF>`，
+ * 而 readFileSync 读出来的是原样字节。于是在 Windows 上用默认 core.autocrlf=true 克隆
+ * 下来的仓库里（源码是 CRLF），本文件里「带换行的锚点」一律匹配不上，单行锚点却正常 ——
+ * 这个坑在全新克隆的复现测试里实测踩到过（10 个多行锚点全部命中 0 次）。
+ * 所以：比较前两边都统一成 LF，输出也一律 LF。
+ */
+function lf(text) {
+  return text.replace(/\r\n/g, '\n')
+}
+
 /** 精确替换一次；命中 0 次或多次都算失败。 */
 function replaceOnce(text, anchor, replacement, label) {
-  const count = text.split(anchor).length - 1
+  const hay = lf(text)
+  const needle = lf(anchor)
+  const count = hay.split(needle).length - 1
   if (count !== 1) {
     bad.push(label + ' — 锚点命中 ' + count + ' 次（要求恰好 1 次）')
-    return text
+    return hay
   }
   ok.push(label)
-  return text.split(anchor)[0] + replacement + text.split(anchor).slice(1).join(anchor)
+  const parts = hay.split(needle)
+  return parts[0] + lf(replacement) + parts.slice(1).join(needle)
+}
+
+/** 全局替换，并记录命中次数（0 次同样算失败）。 */
+function replaceAll(text, from, to, label) {
+  const hay = lf(text)
+  const needle = lf(from)
+  const count = hay.split(needle).length - 1
+  if (count === 0) {
+    bad.push((label === undefined ? from : label) + ' — 命中 0 次')
+    return hay
+  }
+  ok.push((label === undefined ? from : label) + ' ×' + count)
+  return hay.split(needle).join(lf(to))
 }
 
 // ─────────────────────────── host ───────────────────────────
@@ -135,18 +164,8 @@ export default {
   return text
 }
 
-/** 全局替换，并记录命中次数（0 次同样算失败）。 */
-function replaceAll(text, from, to, label) {
-  const count = text.split(from).length - 1
-  if (count === 0) {
-    bad.push((label === undefined ? from : label) + ' — 命中 0 次')
-    return text
-  }
-  ok.push((label === undefined ? from : label) + ' ×' + count)
-  return text.split(from).join(to)
-}
-
-let host = portHost(readFileSync('dynamic/host.js', 'utf8'))
+// 读入时先统一行尾（见文件开头的 lf 说明），保证无论仓库以 LF 还是 CRLF 检出都得到同一结果。
+let host = portHost(lf(readFileSync('dynamic/host.js', 'utf8')))
 
 host = replaceAll(host, 'harness.handle(', 'route(', 'host/通道：harness.handle → route')
 
@@ -320,7 +339,8 @@ window.__ModuleLoader__.load({
   return text
 }
 
-const clientSource = readFileSync('dynamic/client.js', 'utf8')
+// 读入时先统一行尾（见文件开头的 lf 说明），保证无论仓库以 LF 还是 CRLF 检出都得到同一结果。
+const clientSource = lf(readFileSync('dynamic/client.js', 'utf8'))
 const client = portClient(clientSource)
 
 if (bad.length > 0) {
@@ -329,8 +349,8 @@ if (bad.length > 0) {
   process.exit(1)
 }
 
-writeFileSync('lib/index.js', host)
-writeFileSync('lib/client.js', client)
+writeFileSync('lib/index.js', lf(host))
+writeFileSync('lib/client.js', lf(client))
 
 console.log('已生成 lib/index.js（' + host.split('\n').length + ' 行）与 lib/client.js（' + client.split('\n').length + ' 行）')
 console.log('替换点 ' + ok.length + ' 个：')

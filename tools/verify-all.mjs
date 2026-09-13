@@ -4,6 +4,7 @@
 // 覆盖：
 //   verify/verify-static-host.mjs  静态宿主半端到端（假 ctx 驱动：事件 → diff → 落盘 → HTTP）
 //   verify/verify-line-diff.mjs    行级 diff 引擎对拍平台 diff@9.0.0（4000+ 用例）
+//   verify/verify-port-crlf.mjs    行尾回归：CRLF 检出的仓库也要生成一致的 lib/
 //   verify/verify-pairing.mjs      分栏配对与词级高亮（读真实落盘 rows）
 //   verify/predict.mjs             卡片计数预测器（自检一遍）
 import { spawnSync } from 'node:child_process'
@@ -30,6 +31,7 @@ function stateFile() {
 const runs = []
 runs.push({ label: 'verify-static-host', args: [join(ROOT, 'verify', 'verify-static-host.mjs')] })
 runs.push({ label: 'verify-line-diff', args: [join(ROOT, 'verify', 'verify-line-diff.mjs')] })
+runs.push({ label: 'verify-port-crlf', args: [join(ROOT, 'verify', 'verify-port-crlf.mjs')] })
 
 const state = stateFile()
 if (state === null) {

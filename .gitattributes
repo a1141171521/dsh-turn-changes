@@ -1,0 +1,14 @@
+# 行尾：一律 LF。
+#
+# 为什么必须钉死：JS 规范规定模板字面量源码里的 <CR><LF> 会被规范化成 <LF>，而
+# readFileSync 读出来是原样字节。tools/port.mjs 的锚点全写在模板字面量里，源码一旦是
+# CRLF，带换行的锚点就会全部失配（实测过：全新克隆 + 默认 core.autocrlf=true 时 10 个
+# 多行锚点全挂）。port.mjs 自己已经对行尾免疫，这里再把检出统一成 LF，双重保险。
+* text=auto eol=lf
+
+# 二进制文件不做行尾转换
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

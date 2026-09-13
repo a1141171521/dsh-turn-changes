@@ -256,6 +256,16 @@ slots.register({
    这些是观测工具的问题，不是插件的：行数用 node 数；管道里提前截断会触发 EPIPE，
    让被截断的进程以 1 退出 —— 别把它当失败。
 
+10. **全新克隆里 `node tools/port.mjs` 直接报「锚点命中 0 次」。**
+    （实测踩到：10 个**多行**锚点全挂，5 个单行锚点全中 —— 这个分布就是线索。）
+    根因是**行尾**：JS 规范规定模板字面量源码里的 `<CR><LF>` 在解析时被规范化成 `<LF>`，
+    而 `readFileSync` 读出来是原样字节。port.mjs 的锚点都写在模板字面量里，于是
+    在 Windows 默认 `core.autocrlf=true` 克隆出来的仓库（源码 CRLF）里，
+    锚点（已变成 LF）永远匹配不上源码（还是 CRLF）。
+    **纪律：跨文件的字面量匹配必须与行尾无关**（现在 `port.mjs` 比较前两边都 `lf()` 归一），
+    并且仓库用 `.gitattributes`（`* text=auto eol=lf`）把检出钉成 LF。
+    回归测试：`verify/verify-port-crlf.mjs` —— 把源码复制成 CRLF 再跑生成器，逐字节比对 `lib/`。
+
 ---
 
 ## 6. 怎么继续开发
@@ -299,6 +309,7 @@ node tools/verify-all.mjs
 |---|---|---|
 | `verify/verify-static-host.mjs` | 静态宿主半端到端：假 ctx 驱动 事件 → diff → 落盘 → HTTP 四问，再用新 ctx apply 一次验证历史读回 | `passed=21 failed=0` |
 | `verify/verify-line-diff.mjs` | 行级 diff 引擎与平台 `diff@9.0.0` 对拍 + 结构重建/行号自洽/折叠守恒 | `用例总数：4012 … ALL PASS` |
+| `verify/verify-port-crlf.mjs` | 行尾回归：把源码复制成 CRLF 后重跑生成器，`lib/` 必须逐字节一致 | `PASS  CRLF 检出的仓库也能生成一致的 lib/` |
 | `verify/verify-pairing.mjs` | 分栏配对、词级高亮（读真实落盘的 rows） | `ALL PASS (含合成用例)` |
 | `verify/predict.mjs` | 卡片计数预测器（宿主同口径） | 输出 `PLUGIN_EXPECT=+A -M` |
 
