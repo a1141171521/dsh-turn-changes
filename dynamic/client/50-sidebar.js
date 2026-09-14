@@ -60,13 +60,25 @@
       return SIDEBAR_TABS[0].id
     }
 
+    // 布局服务的开合口有两代：
+    //   · 0.1.2：openDetails() / closeDetails()（右栏就是 details 列，宽度由布局钳在 300–520）
+    //   · 0.1.5 起：openRightbar(track, fullscreen) / closeRightbar()（全局面板右栏）
+    // 两代都探一遍，谁在就用谁。
     function openSidebar(view) {
       if (typeof view === 'string') sidebarState.setView(view)
-      if (layout !== null && layout !== undefined && typeof layout.openDetails === 'function') layout.openDetails()
+      if (layout === null || layout === undefined) return
+      if (typeof layout.openRightbar === 'function') {
+        layout.openRightbar(true, false)
+        return
+      }
+      if (typeof layout.openDetails === 'function') layout.openDetails()
     }
 
     function closeSidebar() {
-      if (layout !== null && layout !== undefined && typeof layout.closeDetails === 'function') layout.closeDetails()
+      if (layout !== null && layout !== undefined) {
+        if (typeof layout.closeRightbar === 'function') layout.closeRightbar()
+        else if (typeof layout.closeDetails === 'function') layout.closeDetails()
+      }
       sidebarState.setWidth(0)
     }
 
