@@ -59,20 +59,11 @@
       }
     }))
 
-    // 占用右侧栏（details 槽）并挂右侧栏外壳。该槽是 single，运行时会给动态注册的条目分配一个
-    // 比出厂条目更低的秩（dsh-cordis-client-runner/lib/client.js:266-271），priority 参数会被丢弃，
-    // 遮蔽由框架保证。出厂的工具详情面板随之让位 —— 把它作为第二个页签接回来是下一步的工作。
-    ctx.effect(() => slots.inject('details', () => {
-      if (detailsRegistration === null) {
-        detailsRegistration = slots.register({ name: 'details' }, RightSidebar)
-      }
-      return () => {
-        if (detailsRegistration !== null) {
-          try { detailsRegistration() } catch (err) { /* ignore */ }
-          detailsRegistration = null
-        }
-      }
-    }))
+    // 占用右侧栏（details 槽）并挂右侧栏外壳 —— 这是 DSH 0.1.2 这一代唯一可用的路。
+    // 该槽是 single，运行时会给动态注册的条目分配一个比出厂条目更低的秩
+    // （dsh-cordis-client-runner/lib/client.js:266-271），priority 参数会被丢弃，遮蔽由框架保证。
+    // 宿主一旦提供原生右侧栏服务（0.1.5-rc.1+），60-native.js 的 ctx.inject 会撤掉这条路并改挂原生页签。
+    installFallback()
 
     // 顶部按钮：会话头部右侧工具区（出厂这里只有一个「下载会话日志」）。
     ctx.effect(() => slots.inject('conversation.session.header.utilities', () => {

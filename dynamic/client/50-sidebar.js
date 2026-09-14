@@ -232,7 +232,7 @@
         'data-active': open ? 'true' : 'false',
         title: open ? '收起审查栏' : '打开审查栏：列出本条消息的全部改动',
         'aria-label': open ? '收起审查栏' : '打开审查栏',
-        onClick: () => toggleSidebar('review')
+        onClick: () => openReviewColumn()
       },
         React.createElement('svg', {
           key: 'i',

@@ -1,6 +1,7 @@
 [
   "00-core.js",
   "50-sidebar.js",
+  "60-native.js",
   "90-mount.js",
   "95-close.js"
 ]
