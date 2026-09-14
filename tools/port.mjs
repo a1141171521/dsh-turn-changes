@@ -2,7 +2,8 @@
 //
 // 为什么要有这个脚本：这个插件有两种形态，逻辑必须一模一样。
 //   dynamic/  —— 会话内动态插件形态（Cordis 动态包）的源。改行为、看效果都在这里迭代，
-//                因为动态插件不用重启 DSH 就能换版本。
+//                因为动态插件不用重启 DSH 就能换版本。它按部件存放：dynamic/<half>/index.json
+//                列出拼接顺序，部件之间共享同一个函数作用域（会话内由加载器拼接后执行）。
 //   lib/      —— 静态插件形态（可安装、重启后仍在）。它是从 dynamic/ 机械生成的。
 //
 // 于是「改一次、两边一致」靠的不是人肉同步，而是这个脚本：改完 dynamic/ 跑一次
@@ -10,6 +11,7 @@
 // 就重新生成 lib/。所有替换都要求锚点唯一命中，锚点对不上脚本直接失败——
 // 这样 dynamic/ 结构性改动之后不会静默生成出一个坏掉的 lib/。
 import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 const ok = []
 const bad = []
@@ -25,6 +27,23 @@ const bad = []
  */
 function lf(text) {
   return text.replace(/\r\n/g, '\n')
+}
+
+/**
+ * 按 dynamic/<half>/index.json 拼接部件，得到该半的完整函数体。
+ * 这是两半源码的唯一读取口：动态形态下由会话内的加载器做同样的拼接后执行，
+ * 静态形态下由本脚本拼接后移植。行尾在这里统一成 LF，见上面的 lf 说明。
+ */
+function assemble(half) {
+  const dir = join('dynamic', half)
+  const parts = JSON.parse(readFileSync(join(dir, 'index.json'), 'utf8'))
+  if (!Array.isArray(parts) || parts.length === 0) {
+    throw new Error(dir + '/index.json 不是非空数组')
+  }
+  // 每段规整成「去掉尾部空白 + 恰好一个换行」再直接相接：部件必须是完整语句，
+  // 这样拼接结果与「一个文件写完」逐字一致（部件之间不会多出空行，锚点才稳）。
+  const chunks = parts.map((part) => readFileSync(join(dir, part), 'utf8').replace(/\s*$/, '') + '\n')
+  return lf(chunks.join(''))
 }
 
 /** 精确替换一次；命中 0 次或多次都算失败。 */
@@ -164,8 +183,9 @@ export default {
   return text
 }
 
-// 读入时先统一行尾（见文件开头的 lf 说明），保证无论仓库以 LF 还是 CRLF 检出都得到同一结果。
-let host = portHost(lf(readFileSync('dynamic/host.js', 'utf8')))
+// 读入时按 index.json 拼接部件并统一行尾（见上面的 lf 说明），
+// 保证无论仓库以 LF 还是 CRLF 检出都得到同一结果。
+let host = portHost(assemble('host'))
 
 host = replaceAll(host, 'harness.handle(', 'route(', 'host/通道：harness.handle → route')
 
@@ -340,8 +360,7 @@ window.__ModuleLoader__.load({
 }
 
 // 读入时先统一行尾（见文件开头的 lf 说明），保证无论仓库以 LF 还是 CRLF 检出都得到同一结果。
-const clientSource = lf(readFileSync('dynamic/client.js', 'utf8'))
-const client = portClient(clientSource)
+const client = portClient(assemble('client'))
 
 if (bad.length > 0) {
   console.error('移植失败，未写出任何文件：')

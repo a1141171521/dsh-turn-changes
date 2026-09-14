@@ -28,10 +28,16 @@ cpSync(join(ROOT, 'dynamic'), join(SANDBOX, 'dynamic'), { recursive: true })
 cpSync(join(ROOT, 'tools', 'port.mjs'), join(SANDBOX, 'tools', 'port.mjs'))
 
 let crlfLines = 0
-for (const name of ['host.js', 'client.js']) crlfLines += toCrlf(join(SANDBOX, 'dynamic', name))
+// 按 index.json 逐个部件转成 CRLF（不硬编码文件清单：以后加部件这里自动跟上）
+const parts = []
+for (const half of ['host', 'client']) {
+  const names = JSON.parse(readFileSync(join(SANDBOX, 'dynamic', half, 'index.json'), 'utf8'))
+  for (const name of names) parts.push([half, name])
+}
+for (const part of parts) crlfLines += toCrlf(join(SANDBOX, 'dynamic', part[0], part[1]))
 crlfLines += toCrlf(join(SANDBOX, 'tools', 'port.mjs'))
 console.log('沙箱已就绪：' + SANDBOX)
-console.log('已把 dynamic/host.js、dynamic/client.js、tools/port.mjs 转成 CRLF（共 ' + crlfLines + ' 行）')
+console.log('已把 ' + parts.length + ' 个 dynamic 部件与 tools/port.mjs 转成 CRLF（共 ' + crlfLines + ' 行）')
 
 // 生成器按相对路径读写，所以直接切到沙箱里 import 它。
 process.chdir(SANDBOX)
